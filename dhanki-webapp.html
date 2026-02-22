@@ -1,0 +1,610 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dankhi — Spanish Vocabulary Trainer</title>
+    <link href="https://fonts.googleapis.com/css2?family=Crimson+Pro:wght@400;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-deep: #0a0a0f;
+            --bg-card: #12121a;
+            --bg-input: #1a1a24;
+            --text-primary: #e8e6e3;
+            --text-muted: #6b7280;
+            --accent-gold: #d4a574;
+            --accent-coral: #e07a5f;
+            --success: #4ade80;
+            --error: #f87171;
+            --border: #2a2a3a;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Crimson Pro', Georgia, serif;
+            background: var(--bg-deep);
+            color: var(--text-primary);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 2rem;
+            background-image:
+                radial-gradient(ellipse at 20% 0%, rgba(212, 165, 116, 0.08) 0%, transparent 50%),
+                radial-gradient(ellipse at 80% 100%, rgba(224, 122, 95, 0.06) 0%, transparent 50%);
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            font-weight: 600;
+            color: var(--accent-gold);
+            letter-spacing: 0.05em;
+            margin-bottom: 0.5rem;
+        }
+
+        .subtitle {
+            color: var(--text-muted);
+            font-size: 1.1rem;
+            font-style: italic;
+        }
+
+        .main-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 3rem;
+            width: 100%;
+            max-width: 500px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        }
+
+        .spanish-word {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 2rem;
+            font-weight: 500;
+            color: var(--accent-gold);
+            text-align: center;
+            margin-bottom: 2rem;
+            padding: 1.5rem;
+            background: linear-gradient(135deg, rgba(212, 165, 116, 0.1) 0%, rgba(224, 122, 95, 0.05) 100%);
+            border-radius: 12px;
+            border: 1px solid rgba(212, 165, 116, 0.2);
+        }
+
+        .input-group {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        input[type="text"] {
+            flex: 1;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1.1rem;
+            padding: 1rem 1.25rem;
+            background: var(--bg-input);
+            border: 2px solid var(--border);
+            border-radius: 10px;
+            color: var(--text-primary);
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        input[type="text"]:focus {
+            outline: none;
+            border-color: var(--accent-gold);
+            box-shadow: 0 0 0 3px rgba(212, 165, 116, 0.15);
+        }
+
+        button {
+            font-family: 'Crimson Pro', Georgia, serif;
+            font-size: 1.1rem;
+            padding: 1rem 1.5rem;
+            background: linear-gradient(135deg, var(--accent-gold) 0%, var(--accent-coral) 100%);
+            border: none;
+            border-radius: 10px;
+            color: var(--bg-deep);
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.15s, box-shadow 0.15s;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(212, 165, 116, 0.3);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        .feedback {
+            text-align: center;
+            font-size: 1.25rem;
+            min-height: 3rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            padding: 1rem;
+            border-radius: 10px;
+            margin-bottom: 1rem;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .feedback.visible {
+            opacity: 1;
+        }
+
+        .feedback.correct {
+            background: rgba(74, 222, 128, 0.1);
+            color: var(--success);
+        }
+
+        .feedback.incorrect {
+            background: rgba(248, 113, 113, 0.1);
+            color: var(--error);
+        }
+
+        .feedback.typo {
+            background: rgba(251, 191, 36, 0.1);
+            color: #fbbf24;
+        }
+
+        .stats-bar {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 2rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid var(--border);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+
+        .stat {
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 1.25rem;
+            color: var(--text-primary);
+            margin-bottom: 0.25rem;
+        }
+
+        .word-list {
+            margin-top: 2rem;
+            width: 100%;
+            max-width: 700px;
+        }
+
+        .word-list h2 {
+            font-size: 1.25rem;
+            color: var(--accent-gold);
+            margin-bottom: 1rem;
+            text-align: center;
+        }
+
+        .words-grid {
+            display: grid;
+            gap: 0.5rem;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.8rem;
+        }
+
+        .word-row {
+            display: grid;
+            grid-template-columns: 140px 40px 50px 60px 1fr;
+            gap: 0.75rem;
+            padding: 0.6rem 1rem;
+            background: var(--bg-card);
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            align-items: center;
+        }
+
+        .word-spanish {
+            color: var(--text-primary);
+            font-weight: 500;
+        }
+
+        .word-age, .word-learned, .word-priority {
+            color: var(--text-muted);
+            text-align: center;
+        }
+
+        .word-guesses {
+            display: flex;
+            gap: 2px;
+            flex-wrap: wrap;
+        }
+
+        .guess-dot {
+            width: 14px;
+            height: 14px;
+            border-radius: 3px;
+            font-size: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .guess-correct {
+            background: rgba(74, 222, 128, 0.2);
+        }
+
+        .guess-incorrect {
+            background: rgba(248, 113, 113, 0.2);
+        }
+
+        .complete-banner {
+            display: none;
+            text-align: center;
+            padding: 2rem;
+            background: linear-gradient(135deg, rgba(74, 222, 128, 0.15) 0%, rgba(74, 222, 128, 0.05) 100%);
+            border: 1px solid rgba(74, 222, 128, 0.3);
+            border-radius: 12px;
+            margin-bottom: 1.5rem;
+        }
+
+        .complete-banner.visible {
+            display: block;
+        }
+
+        .complete-banner h2 {
+            color: var(--success);
+            font-size: 1.75rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .complete-banner p {
+            color: var(--text-muted);
+        }
+
+        .header-row {
+            display: grid;
+            grid-template-columns: 140px 40px 50px 60px 1fr;
+            gap: 0.75rem;
+            padding: 0.5rem 1rem;
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .header-row span {
+            text-align: center;
+        }
+
+        .header-row span:first-child {
+            text-align: left;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+
+        .shake {
+            animation: shake 0.3s ease-in-out;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        .pulse {
+            animation: pulse 0.3s ease-in-out;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Dankhi</h1>
+        <p class="subtitle">Spaced repetition vocabulary trainer</p>
+    </header>
+
+    <div class="main-card">
+        <div class="complete-banner" id="completeBanner">
+            <h2>🎉 ¡Felicidades!</h2>
+            <p>You've mastered all the words!</p>
+        </div>
+
+        <div class="spanish-word" id="spanishWord">Loading...</div>
+
+        <div class="input-group">
+            <input type="text" id="answerInput" placeholder="Type the English translation..." autocomplete="off">
+            <button id="submitBtn">Check</button>
+        </div>
+
+        <div class="feedback" id="feedback"></div>
+
+        <div class="stats-bar">
+            <div class="stat">
+                <div class="stat-value" id="turnCount">0</div>
+                <div>Turns</div>
+            </div>
+            <div class="stat">
+                <div class="stat-value" id="correctCount">0</div>
+                <div>Correct</div>
+            </div>
+            <div class="stat">
+                <div class="stat-value" id="masteredCount">0/14</div>
+                <div>Mastered</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="word-list">
+        <h2>Vocabulary Progress</h2>
+        <div class="header-row">
+            <span>Word</span>
+            <span>Age</span>
+            <span>Learn</span>
+            <span>Priority</span>
+            <span>Guesses</span>
+        </div>
+        <div class="words-grid" id="wordsGrid"></div>
+    </div>
+
+    <script>
+        // Hardcoded nouns from nouns.csv
+        const NOUNS_DATA = [
+            ["the beginners", "principante",],
+            ["the wall", "el muro",],
+            ["the affair", "el asunto",],
+            ["the funds", "los fondos",],
+            ["the campaign", "la campaña",],
+            ["the threat", "la amenzana",],
+            ["the meeting", "la reunión",],
+            ["the project", "el proyecto",],
+            ["the country", "el país",],
+            ["the leaders", "los líderes",],
+            ["denmark", "Dinamarca",],
+            ["sweden", "Suecia",],
+            ["norway", "Noruega",],
+            ["lithuania", "Lituania",],
+        ];
+
+        // Word class
+        class Word {
+            constructor(spanish, translations) {
+                this.spanish = spanish;
+                this.translations = Array.isArray(translations) ? translations : translations.split('/');
+                this.translations = this.translations.map(t => t.toLowerCase().trim());
+                this.guesses = [];
+                this.age = 0;
+            }
+
+            get learnedness() {
+                return this.guesses.slice(-5).filter(g => g === true).length;
+            }
+
+            get priority() {
+                if (this.age === 0) return 1;
+                if (this.learnedness === 0) return 1;
+                return 1 / (Math.pow(4, this.learnedness) / this.age);
+            }
+
+            get isMastered() {
+                const lastThree = this.guesses.slice(-3);
+                return lastThree.length === 3 && lastThree.every(g => g === true);
+            }
+        }
+
+        // Vocab class
+        class Vocab {
+            constructor(words) {
+                this.words = words;
+            }
+
+            nextWord() {
+                const maxPriority = Math.max(...this.words.map(w => w.priority));
+                const candidates = this.words.filter(w => w.priority === maxPriority);
+                return candidates[Math.floor(Math.random() * candidates.length)];
+            }
+
+            incrementAge() {
+                this.words.forEach(w => w.age++);
+            }
+
+            get isComplete() {
+                return this.words.every(w => w.isMastered);
+            }
+
+            get masteredCount() {
+                return this.words.filter(w => w.isMastered).length;
+            }
+        }
+
+        // Levenshtein distance for typo detection
+        function levenshtein(a, b) {
+            const matrix = [];
+            for (let i = 0; i <= b.length; i++) {
+                matrix[i] = [i];
+            }
+            for (let j = 0; j <= a.length; j++) {
+                matrix[0][j] = j;
+            }
+            for (let i = 1; i <= b.length; i++) {
+                for (let j = 1; j <= a.length; j++) {
+                    if (b.charAt(i - 1) === a.charAt(j - 1)) {
+                        matrix[i][j] = matrix[i - 1][j - 1];
+                    } else {
+                        matrix[i][j] = Math.min(
+                            matrix[i - 1][j - 1] + 1,
+                            matrix[i][j - 1] + 1,
+                            matrix[i - 1][j] + 1
+                        );
+                    }
+                }
+            }
+            return matrix[b.length][a.length];
+        }
+
+        function isTypo(answer, translations) {
+            return translations.some(t => {
+                const distance = levenshtein(answer.toLowerCase(), t.toLowerCase());
+                return distance > 0 && distance <= 2 && answer.length >= 3;
+            });
+        }
+
+        // Get RGB color based on priority
+        function getPriorityColor(priority, minP, maxP) {
+            if (maxP === minP) return 'rgb(255, 255, 0)';
+            const d = (priority - minP) / (maxP - minP);
+            const r = Math.round(255 * d);
+            const g = 255 - Math.round(255 * d);
+            return `rgb(${r}, ${g}, 0)`;
+        }
+
+        // Initialize vocab
+        const words = NOUNS_DATA.map(([spanish, english]) => new Word(spanish, english));
+        const vocab = new Vocab(words);
+
+        // State
+        let currentWord = null;
+        let turnCount = 0;
+        let correctCount = 0;
+        let isTypoRetry = false;
+
+        // DOM elements
+        const spanishWordEl = document.getElementById('spanishWord');
+        const answerInput = document.getElementById('answerInput');
+        const submitBtn = document.getElementById('submitBtn');
+        const feedbackEl = document.getElementById('feedback');
+        const turnCountEl = document.getElementById('turnCount');
+        const correctCountEl = document.getElementById('correctCount');
+        const masteredCountEl = document.getElementById('masteredCount');
+        const wordsGridEl = document.getElementById('wordsGrid');
+        const completeBannerEl = document.getElementById('completeBanner');
+
+        function showFeedback(message, type) {
+            feedbackEl.textContent = message;
+            feedbackEl.className = `feedback visible ${type}`;
+        }
+
+        function hideFeedback() {
+            feedbackEl.className = 'feedback';
+        }
+
+        function updateStats() {
+            turnCountEl.textContent = turnCount;
+            correctCountEl.textContent = correctCount;
+            masteredCountEl.textContent = `${vocab.masteredCount}/14`;
+        }
+
+        function renderWordList() {
+            const priorities = vocab.words.map(w => w.priority);
+            const minP = Math.min(...priorities);
+            const maxP = Math.max(...priorities);
+
+            wordsGridEl.innerHTML = vocab.words.map(word => {
+                const color = getPriorityColor(word.priority, minP, maxP);
+                const guessesHtml = word.guesses.map(g =>
+                    `<div class="guess-dot ${g ? 'guess-correct' : 'guess-incorrect'}">${g ? '✓' : '✗'}</div>`
+                ).join('');
+
+                return `
+                    <div class="word-row" style="border-left: 3px solid ${color}">
+                        <div class="word-spanish">${word.spanish}</div>
+                        <div class="word-age">${word.age}</div>
+                        <div class="word-learned">${word.learnedness}/5</div>
+                        <div class="word-priority">${word.priority.toFixed(2)}</div>
+                        <div class="word-guesses">${guessesHtml || '<span style="color: var(--text-muted)">—</span>'}</div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function nextTurn() {
+            if (vocab.isComplete) {
+                completeBannerEl.classList.add('visible');
+                spanishWordEl.textContent = '🎉';
+                answerInput.disabled = true;
+                submitBtn.disabled = true;
+                return;
+            }
+
+            currentWord = vocab.nextWord();
+            spanishWordEl.textContent = currentWord.spanish;
+            answerInput.value = '';
+            answerInput.focus();
+            hideFeedback();
+            isTypoRetry = false;
+        }
+
+        function checkAnswer() {
+            const answer = answerInput.value.toLowerCase().trim();
+
+            if (!answer) {
+                answerInput.classList.add('shake');
+                setTimeout(() => answerInput.classList.remove('shake'), 300);
+                return;
+            }
+
+            const isCorrect = currentWord.translations.includes(answer);
+
+            // Check for typo (only if not already a retry)
+            // if (!isCorrect && !isTypoRetry && isTypo(answer, currentWord.translations)) {
+            //     showFeedback('❓ That looks like a typo... try again?', 'typo');
+            //     isTypoRetry = true;
+            //     answerInput.select();
+            //     return;
+            // }
+
+            if (isCorrect) {
+                currentWord.guesses.push(true);
+                correctCount++;
+
+                const otherTranslations = currentWord.translations.filter(t => t !== answer);
+                let message = '✅ Correct!';
+                if (otherTranslations.length > 0) {
+                    message += ` (also: ${otherTranslations.join(', ')})`;
+                }
+                showFeedback(message, 'correct');
+                spanishWordEl.classList.add('pulse');
+                setTimeout(() => spanishWordEl.classList.remove('pulse'), 300);
+            } else {
+                currentWord.guesses.push(false);
+                showFeedback(`❌ Correct answer: ${currentWord.translations.join(' / ')}`, 'incorrect');
+                spanishWordEl.classList.add('shake');
+                setTimeout(() => spanishWordEl.classList.remove('shake'), 300);
+            }
+
+            vocab.incrementAge();
+            currentWord.age = 0;
+            turnCount++;
+
+            updateStats();
+            renderWordList();
+
+            setTimeout(nextTurn, 1500);
+        }
+
+        // Event listeners
+        submitBtn.addEventListener('click', checkAnswer);
+        answerInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') checkAnswer();
+        });
+
+        // Initialize
+        updateStats();
+        renderWordList();
+        nextTurn();
+    </script>
+
+</body>
+</html>
