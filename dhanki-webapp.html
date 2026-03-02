@@ -85,6 +85,7 @@
             display: flex;
             gap: 1rem;
             margin-bottom: 1.5rem;
+            justify-content: center;
         }
 
         input[type="text"] {
@@ -125,6 +126,22 @@
 
         button:active {
             transform: translateY(0);
+        }
+
+        .btn-reset {
+            background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+        }
+
+        .btn-reset:hover {
+            box-shadow: 0 8px 20px rgba(139, 92, 246, 0.3);
+        }
+
+        .btn-clear {
+            background: linear-gradient(135deg, #f43f5e 0%, #e11d48 100%);
+        }
+
+        .btn-clear:hover {
+            box-shadow: 0 8px 20px rgba(244, 63, 94, 0.3);
         }
 
         .feedback {
@@ -195,6 +212,16 @@
             text-align: center;
         }
 
+        .word-list .btn-reset {
+            display: block;
+            margin: 0 auto 1rem auto;
+        }
+
+        .word-list .btn-clear {
+            display: block;
+            margin: 0 auto 1rem auto;
+        }
+
         .words-grid {
             display: grid;
             gap: 0.5rem;
@@ -213,7 +240,7 @@
             align-items: center;
         }
 
-        .word-spanish {
+        .word-english {
             color: var(--text-primary);
             font-weight: 500;
         }
@@ -308,6 +335,46 @@
         .pulse {
             animation: pulse 0.3s ease-in-out;
         }
+
+        .empty-state {
+            display: none;
+            text-align: center;
+            padding: 3rem 2rem;
+        }
+
+        .empty-state.visible {
+            display: block;
+        }
+
+        .empty-state p {
+            color: var(--text-muted);
+            font-size: 1.1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .btn-load-vocab {
+            font-family: 'Crimson Pro', Georgia, serif;
+            font-size: 1.25rem;
+            padding: 1.25rem 2.5rem;
+            background: linear-gradient(135deg, var(--accent-gold) 0%, var(--accent-coral) 100%);
+            border: none;
+            border-radius: 12px;
+            color: var(--bg-deep);
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.15s, box-shadow 0.15s;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .btn-load-vocab:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(212, 165, 116, 0.4);
+        }
+
+        .main-card.hidden, .word-list.hidden {
+            display: none;
+        }
     </style>
 </head>
 <body>
@@ -316,7 +383,11 @@
         <p class="subtitle">Spaced repetition vocabulary trainer</p>
     </header>
 
-    <div class="main-card">
+    <div class="empty-state" id="emptyState">
+        <button id="createBtn" class="btn-load">Create Vocabulary</button>
+    </div>
+
+    <div class="main-card" id="mainCard">
         <div class="complete-banner" id="completeBanner">
             <h2>🎉 ¡Felicidades!</h2>
             <p>You've mastered all the words!</p>
@@ -347,8 +418,13 @@
         </div>
     </div>
 
-    <div class="word-list">
+    <div class="word-list" id="wordList">
+
+
+        <button id="resetBtn" class="btn-reset">Reset Vocab</button>
         <h2>Vocabulary Progress</h2>
+
+
         <div class="header-row">
             <span>Word</span>
             <span>Age</span>
@@ -357,43 +433,110 @@
             <span>Guesses</span>
         </div>
         <div class="words-grid" id="wordsGrid"></div>
+        <br>
+        <button id="clearBtn" class="btn-clear">Clear Vocab</button>
+
     </div>
 
     <script>
-        // Hardcoded nouns from nouns.csv
-        const NOUNS_DATA = [
-            ["the beginners", "principante",],
-            ["the wall", "el muro",],
-            ["the affair", "el asunto",],
-            ["the funds", "los fondos",],
-            ["the campaign", "la campaña",],
-            ["the threat", "la amenzana",],
-            ["the meeting", "la reunión",],
-            ["the project", "el proyecto",],
-            ["the country", "el país",],
-            ["the leaders", "los líderes",],
-            ["denmark", "Dinamarca",],
-            ["sweden", "Suecia",],
-            ["norway", "Noruega",],
-            ["lithuania", "Lituania",],
-        ];
+        const DB_NAME = "Vocab"
+        const DB_VERSION = 1  // Must be a number, not a string
+
+        class Database {
+            constructor() {
+                this.db = null;
+            }
+
+            async init() {
+                if (this.db) return this.db; // prevent reopening
+
+                return new Promise((resolve, reject) => {
+                    const request = indexedDB.open(DB_NAME, DB_VERSION);  // Use the variable, not a string
+
+                    request.onupgradeneeded = (event) => {
+                        const db = event.target.result;
+                        db.createObjectStore("words", { keyPath: "english" });
+                    };
+
+                    request.onsuccess = (event) => {
+                        this.db = event.target.result;
+                        resolve(this.db);
+                    };
+
+                    request.onerror = () => reject(request.error);
+                });
+            }
+
+            getStore(storeName, mode) {  // Added mode parameter
+                const tx = this.db.transaction(storeName, mode);
+                return tx.objectStore(storeName);
+            }
+
+            async addWord(word) {
+                const store = this.getStore("words", "readwrite");
+
+                return new Promise((resolve, reject) => {
+                    const request = store.add(word);
+                    request.onsuccess = () => resolve(request.result);
+                    request.onerror = () => reject(request.error);
+                });
+            }
+
+            async getWords() {
+                const store = this.getStore("words", "readonly");
+
+                return new Promise((resolve, reject) => {
+                    const request = store.getAll();
+                    request.onsuccess = () => resolve(request.result);
+                    request.onerror = () => reject(request.error);
+                });
+            }
+
+            async clear() {
+                console.log("DELETING DB")
+                // Close the underlying IndexedDB connection
+                if (this.db) {
+                    this.db.close();
+                    this.db = null;
+                }
+                const deleteRequest = indexedDB.deleteDatabase(DB_NAME);
+
+                deleteRequest.onsuccess = () => {
+                    console.log("Deleted");
+                    vocab = new Vocab([]);
+                    render();
+                };
+
+                deleteRequest.onerror = () => {
+                    console.error("Delete failed");
+                };
+
+                deleteRequest.onblocked = () => {
+                    console.warn("Blocked — close all tabs using this DB");
+                };
+
+            }
+        }
+
+        const db = new Database();
 
         // Word class
         class Word {
-            constructor(spanish, translations) {
-                this.spanish = spanish;
-                this.translations = Array.isArray(translations) ? translations : translations.split('/');
+            constructor(english, translations) {
+                this.english = english;
+                this.translations = translations
                 this.translations = this.translations.map(t => t.toLowerCase().trim());
                 this.guesses = [];
                 this.age = 0;
             }
 
             get learnedness() {
-                return this.guesses.slice(-5).filter(g => g === true).length;
+                return this.guesses.slice(-3).filter(g => g === true).length;
             }
 
             get priority() {
-                if (this.age === 0) return 1;
+                if (this.age === 0) return 0;
+                if (this.isMastered) return 0;
                 if (this.learnedness === 0) return 1;
                 return 1 / (Math.pow(4, this.learnedness) / this.age);
             }
@@ -401,6 +544,22 @@
             get isMastered() {
                 const lastThree = this.guesses.slice(-3);
                 return lastThree.length === 3 && lastThree.every(g => g === true);
+            }
+
+            reset = function() {
+                this.age = 0
+                this.guesses = []
+            }
+
+            store = async function() {
+                let word_db  = {
+                    english: this.english,
+                    translations: this.translations,
+                    guesses: this.guesses,
+                    age: this.age
+                }
+                console.log(word_db)
+                db.addWord(word_db)
             }
         }
 
@@ -426,6 +585,16 @@
 
             get masteredCount() {
                 return this.words.filter(w => w.isMastered).length;
+            }
+
+            reset = function() {
+                console.log("RESETTING")
+                this.words.forEach(word => word.reset())
+            }
+
+            store = async function() {
+                // Store each word
+                this.words.forEach(word => word.store())
             }
         }
 
@@ -470,18 +639,8 @@
             return `rgb(${r}, ${g}, 0)`;
         }
 
-        // Initialize vocab
-        const words = NOUNS_DATA.map(([spanish, english]) => new Word(spanish, english));
-        const vocab = new Vocab(words);
-
-        // State
-        let currentWord = null;
-        let turnCount = 0;
-        let correctCount = 0;
-        let isTypoRetry = false;
-
         // DOM elements
-        const spanishWordEl = document.getElementById('spanishWord');
+        const englishWordEl = document.getElementById('spanishWord');
         const answerInput = document.getElementById('answerInput');
         const submitBtn = document.getElementById('submitBtn');
         const feedbackEl = document.getElementById('feedback');
@@ -490,6 +649,48 @@
         const masteredCountEl = document.getElementById('masteredCount');
         const wordsGridEl = document.getElementById('wordsGrid');
         const completeBannerEl = document.getElementById('completeBanner');
+        const emptyStateEl = document.getElementById('emptyState');
+        const mainCardEl = document.getElementById('mainCard');
+        const wordListEl = document.getElementById('wordList');
+        const resetBtn = document.getElementById('resetBtn')
+        const createBtn = document.getElementById('createBtn')
+
+        // Event listeners
+        submitBtn.addEventListener('click', checkAnswer);
+        answerInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') checkAnswer();
+        });
+
+        createBtn.addEventListener("click", createVocab)
+        resetBtn.addEventListener('click', resetVocab)
+        clearBtn.addEventListener("click", clearVocab)
+
+
+
+        function render() {
+            // Check if vocab is empty
+            console.log("rendering", vocab.words.length, "words")
+            if (vocab.words.length === 0) {
+                // Show empty state, hide main content
+                emptyStateEl.classList.add('visible');
+                emptyStateEl.classList.remove('hidden');
+                mainCardEl.classList.add('hidden');
+                mainCardEl.classList.remove('visible');
+                wordListEl.classList.add('hidden');
+                wordListEl.classList.remove('visible');
+            } else {
+                // Initialize the app now that vocab is loaded
+                emptyStateEl.classList.add('hidden');
+                emptyStateEl.classList.remove('visible');
+                mainCardEl.classList.add('visible');
+                mainCardEl.classList.remove('hidden');
+                wordListEl.classList.add('visible');
+                wordListEl.classList.remove('hidden');
+                updateStats();
+                renderWordList();
+                nextTurn();
+            }
+        }
 
         function showFeedback(message, type) {
             feedbackEl.textContent = message;
@@ -503,10 +704,15 @@
         function updateStats() {
             turnCountEl.textContent = turnCount;
             correctCountEl.textContent = correctCount;
-            masteredCountEl.textContent = `${vocab.masteredCount}/14`;
+            masteredCountEl.textContent = `${vocab.masteredCount}/${vocab.words.length}`;
+        }
+
+        function compareWords(a, b) {
+            return b.priority - a.priority;
         }
 
         function renderWordList() {
+            vocab.words.sort(compareWords);
             const priorities = vocab.words.map(w => w.priority);
             const minP = Math.min(...priorities);
             const maxP = Math.max(...priorities);
@@ -519,7 +725,7 @@
 
                 return `
                     <div class="word-row" style="border-left: 3px solid ${color}">
-                        <div class="word-spanish">${word.spanish}</div>
+                        <div class="word-english">${word.english}</div>
                         <div class="word-age">${word.age}</div>
                         <div class="word-learned">${word.learnedness}/5</div>
                         <div class="word-priority">${word.priority.toFixed(2)}</div>
@@ -532,14 +738,14 @@
         function nextTurn() {
             if (vocab.isComplete) {
                 completeBannerEl.classList.add('visible');
-                spanishWordEl.textContent = '🎉';
+                englishWordEl.textContent = '🎉';
                 answerInput.disabled = true;
                 submitBtn.disabled = true;
                 return;
             }
 
             currentWord = vocab.nextWord();
-            spanishWordEl.textContent = currentWord.spanish;
+            englishWordEl.textContent = currentWord.english;
             answerInput.value = '';
             answerInput.focus();
             hideFeedback();
@@ -575,18 +781,20 @@
                     message += ` (also: ${otherTranslations.join(', ')})`;
                 }
                 showFeedback(message, 'correct');
-                spanishWordEl.classList.add('pulse');
-                setTimeout(() => spanishWordEl.classList.remove('pulse'), 300);
+                englishWordEl.classList.add('pulse');
+                setTimeout(() => englishWordEl.classList.remove('pulse'), 300);
             } else {
                 currentWord.guesses.push(false);
                 showFeedback(`❌ Correct answer: ${currentWord.translations.join(' / ')}`, 'incorrect');
-                spanishWordEl.classList.add('shake');
-                setTimeout(() => spanishWordEl.classList.remove('shake'), 300);
+                englishWordEl.classList.add('shake');
+                setTimeout(() => englishWordEl.classList.remove('shake'), 300);
             }
 
             vocab.incrementAge();
             currentWord.age = 0;
             turnCount++;
+
+            vocab.store()
 
             updateStats();
             renderWordList();
@@ -594,16 +802,69 @@
             setTimeout(nextTurn, 1500);
         }
 
-        // Event listeners
-        submitBtn.addEventListener('click', checkAnswer);
-        answerInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') checkAnswer();
-        });
+        // Create a vocab in the db
+        async function createVocab() {
+            const NOUNS_DATA = [
+                ["the beginner", ["el principante"]],
+                ["the wall", ["el muro", "la pared"]],
+                ["the affair", ["el asunto"]],
+                ["the funds", ["los fondos"]],
+                ["the campaign", ["la campaña"]],
+                ["the threat", ["la amenzana"]],
+                ["the meeting", ["la reunión"]],
+                ["the project", ["el proyecto"]],
+                ["the country", ["el país"]],
+                ["the leaders", ["los líderes"]],
+                ["denmark", ["Dinamarca"]],
+                ["sweden", ["Suecia"]],
+                ["norway", ["Noruega"]],
+                ["lithuania", ["Lituania"]],
+            ];
+            words = NOUNS_DATA.map(([english, translations]) => new Word(english, translations));
+            vocab = new Vocab(words=words)
+            console.log("creating vocab", vocab.words.length)
+            await vocab.store()
+            console.log("complete, rendering", vocab.words.length)
+            render()
+        }
 
-        // Initialize
-        updateStats();
-        renderWordList();
-        nextTurn();
+        // Reset the vocab in the db
+        async function resetVocab() {
+            vocab.reset()
+            await vocab.store()
+            render()
+        }
+
+        // Completely delete the vocab in the DB
+        async function clearVocab() {
+            await db.clear()
+            render()
+        }
+
+        async function loadVocab() {
+            await db.init();  // Must initialize DB first!
+            const words_db = await db.getWords();
+            const words = words_db.map(w => new Word(w.english, w.translations));
+            vocab = new Vocab(words);
+        }
+
+        // State
+        let vocab = new Vocab(words=[]);
+        let currentWord = null;
+        let turnCount = 0;
+        let correctCount = 0;
+        let isTypoRetry = false;
+
+        // Initialize the app (async)
+        async function init() {
+            await db.init()
+            await loadVocab();
+            console.log("Loaded", vocab.words.length, "words");
+            render();
+        }
+
+        init();
+
     </script>
 
 </body>
