@@ -472,11 +472,11 @@
                 return tx.objectStore(storeName);
             }
 
-            async addWord(word) {
+            async putWord(word) {
                 const store = this.getStore("words", "readwrite");
 
                 return new Promise((resolve, reject) => {
-                    const request = store.add(word);
+                    const request = store.put(word);  // put = insert or update
                     request.onsuccess = () => resolve(request.result);
                     request.onerror = () => reject(request.error);
                 });
@@ -522,12 +522,12 @@
 
         // Word class
         class Word {
-            constructor(english, translations) {
+            constructor(english, translations, age, guesses) {
                 this.english = english;
                 this.translations = translations
                 this.translations = this.translations.map(t => t.toLowerCase().trim());
-                this.guesses = [];
-                this.age = 0;
+                this.age = age;
+                this.guesses = guesses;
             }
 
             get learnedness() {
@@ -558,8 +558,7 @@
                     guesses: this.guesses,
                     age: this.age
                 }
-                console.log(word_db)
-                db.addWord(word_db)
+                await db.putWord(word_db)
             }
         }
 
@@ -752,7 +751,7 @@
             isTypoRetry = false;
         }
 
-        function checkAnswer() {
+        async function checkAnswer() {
             const answer = answerInput.value.toLowerCase().trim();
 
             if (!answer) {
@@ -794,7 +793,7 @@
             currentWord.age = 0;
             turnCount++;
 
-            vocab.store()
+            await vocab.store()
 
             updateStats();
             renderWordList();
@@ -820,7 +819,12 @@
                 ["norway", ["Noruega"]],
                 ["lithuania", ["Lituania"]],
             ];
-            words = NOUNS_DATA.map(([english, translations]) => new Word(english, translations));
+            words = NOUNS_DATA.map(([english, translations]) => new Word(
+                english=english,
+                translations=translations,
+                age=0,
+                guesses=[]
+            ));
             vocab = new Vocab(words=words)
             console.log("creating vocab", vocab.words.length)
             await vocab.store()
@@ -844,8 +848,16 @@
         async function loadVocab() {
             await db.init();  // Must initialize DB first!
             const words_db = await db.getWords();
-            const words = words_db.map(w => new Word(w.english, w.translations));
+            console.log("wordsdb", words_db)
+            const words = words_db.map(w => new Word(
+                english=w.english,
+                translations=w.translations,
+                age=w.age,
+                guesses=w.guesses
+            ));
+            console.log("words", words)
             vocab = new Vocab(words);
+            render()
         }
 
         // State
@@ -859,8 +871,6 @@
         async function init() {
             await db.init()
             await loadVocab();
-            console.log("Loaded", vocab.words.length, "words");
-            render();
         }
 
         init();
