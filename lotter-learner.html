@@ -415,6 +415,10 @@
         .main-card.hidden, .word-list.hidden {
             display: none;
         }
+
+        .hidden {
+            display: none !important;
+        }
     </style>
 </head>
 <body>
@@ -431,7 +435,7 @@
 
         <div class="empty-banner" id="emptyBanner">
             <h2>⏳ Empty Vocab ⏳</h2>
-            <p>Add some words to your vocab to get started ...!</p>
+            <p>Add some words to your vocab to get started ...</p>
         </div>
 
         <div class="spanish-word" id="spanishWord">Loading...</div>
@@ -461,10 +465,8 @@
 
     <div class="word-list" id="wordList">
 
-
-        <a href="create-vocab.html?mode=add" class="btn-add">Add Vocab</a>
+        <a href="create-vocab.html" class="btn-add">Add Vocab</a>
         <h2>Vocabulary Progress</h2>
-
 
         <div class="header-row">
             <span>Word</span>
@@ -770,35 +772,45 @@
                 `;
             }).join('');
         }
+        function hideEl (el) {
+            el.classList.remove('visible')
+            el.classList.add('hidden')
+        }
+
+        function showEl (el) {
+            el.classList.remove('hidden')
+            el.classList.add('visible')
+        }
 
         function nextTurn() {
             if (vocab.isEmpty) {
-                emptyBannerEl.classList.add('visible');
-                answerInput.disabled = true;
-                submitBtn.disabled = true;
-                englishWordEl.classList.remove("visible");
-                answerInput.classList.remove("visible");
-                submitBtn.classList.remove("visible");
-
-                englishWordEl.classList.add("hidden");
-                answerInput.classList.add("hidden");
-                submitBtn.classList.add("hidden");
+                showEl(emptyBannerEl)
+                hideEl(englishWordEl)
+                hideEl(answerInput)
+                hideEl(submitBtn)
                 return;
             }
 
             if (vocab.isComplete) {
-                completeBannerEl.classList.add('visible');
-                englishWordEl.textContent = '🎉';
-                answerInput.disabled = true;
-                submitBtn.disabled = true;
+                showEl(completeBannerEl)
+                hideEl(englishWordEl)
+                hideEl(answerInput)
+                hideEl(submitBtn)
+                hideFeedback();
                 return;
             }
+
+            hideEl(emptyBannerEl)
+            hideEl(completeBannerEl)
+            showEl(englishWordEl)
+            showEl(answerInput)
+            showEl(submitBtn)
+            hideFeedback();
 
             currentWord = vocab.nextWord();
             englishWordEl.textContent = currentWord.english;
             answerInput.value = '';
             answerInput.focus();
-            hideFeedback();
             isTypoRetry = false;
         }
 

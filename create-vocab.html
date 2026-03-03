@@ -195,7 +195,7 @@ the meeting, la reunión
         ></textarea>
 
         <div class="button-row">
-            <a href="dhanki-webapp.html" class="btn btn-secondary">Cancel</a>
+            <a href="lotter-learner.html" class="btn btn-secondary">Cancel</a>
             <button id="saveBtn" class="btn btn-primary">Save Vocabulary</button>
         </div>
 
@@ -270,9 +270,6 @@ the meeting, la reunión
         }
 
         // Detect mode from URL
-        // const urlParams = new URLSearchParams(window.location.search);
-        // const isAddMode = urlParams.get('mode') === 'add';
-
         const db = new Database();
         const csvInput = document.getElementById('csvInput');
         const saveBtn = document.getElementById('saveBtn');
@@ -280,10 +277,7 @@ the meeting, la reunión
         const pageSubtitle = document.getElementById('pageSubtitle');
 
         // Update UI based on mode
-        // if (isAddMode) {
-            // pageSubtitle.textContent = 'Add Vocabulary';
-            // saveBtn.textContent = 'Add Words';
-        // }
+
 
         function showFeedback(message, type) {
             feedbackEl.textContent = message;
@@ -355,7 +349,7 @@ the meeting, la reunión
                 }
 
                 showFeedback(`Added ${addedCount} word(s). Updated ${updatedCount} word(s). ${skippedCount} word(s) already existed. Redirecting...`, 'success');
-                setTimeout(() => {window.location.href = 'dhanki-webapp.html';}, 1000);
+                setTimeout(() => {window.location.href = 'lotter-learner.html';}, 1000);
 
             } catch (error) {
                 console.error('Save failed:', error);
