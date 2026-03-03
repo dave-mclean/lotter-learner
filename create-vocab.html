@@ -270,8 +270,8 @@ the meeting, la reunión
         }
 
         // Detect mode from URL
-        const urlParams = new URLSearchParams(window.location.search);
-        const isAddMode = urlParams.get('mode') === 'add';
+        // const urlParams = new URLSearchParams(window.location.search);
+        // const isAddMode = urlParams.get('mode') === 'add';
 
         const db = new Database();
         const csvInput = document.getElementById('csvInput');
@@ -280,10 +280,10 @@ the meeting, la reunión
         const pageSubtitle = document.getElementById('pageSubtitle');
 
         // Update UI based on mode
-        if (isAddMode) {
-            pageSubtitle.textContent = 'Add Vocabulary';
-            saveBtn.textContent = 'Add Words';
-        }
+        // if (isAddMode) {
+            // pageSubtitle.textContent = 'Add Vocabulary';
+            // saveBtn.textContent = 'Add Words';
+        // }
 
         function showFeedback(message, type) {
             feedbackEl.textContent = message;
@@ -321,53 +321,41 @@ the meeting, la reunión
         }
 
         async function saveVocabulary() {
+            let addedCount = 0
+            let updatedCount = 0
+            let skippedCount = 0
+            let words = []
+
             const text = csvInput.value.trim();
 
-            if (!text) {
-                showFeedback('Please enter some vocabulary', 'error');
-                return;
-            }
-
-            const words = parseCSV(text);
-
-            if (words.length === 0) {
-                showFeedback('No valid words found. Check the format.', 'error');
-                return;
+            if (text) {
+                words = parseCSV(text);
             }
 
             try {
                 await db.init();
 
-                if (isAddMode) {
-                    // Add mode: only add words that don't exist
-                    let addedCount = 0;
-                    let skippedCount = 0;
+                for (const word of words) {
+                    const existing = await db.getWord(word.english);
+                    if (existing) {
 
-                    for (const word of words) {
-                        const existing = await db.getWord(word.english);
-                        if (existing) {
-                            skippedCount++;
-                        } else {
-                            await db.putWord(word);
-                            addedCount++;
+                        if (existing.translations.length < word.translations.length) {
+                            existing.translations = word.translations
+                            await db.putWord(word)
+                            updatedCount++
                         }
-                    }
-
-                    showFeedback(`Added ${addedCount} words (${skippedCount} already existed). Redirecting...`, 'success');
-                } else {
-                    // Create mode: clear and replace all
-                    await db.clear();
-
-                    for (const word of words) {
+                        else {
+                            skippedCount++;
+                        }
+                    } else {
                         await db.putWord(word);
+                        addedCount++;
                     }
-
-                    showFeedback(`Saved ${words.length} words! Redirecting...`, 'success');
+                    await db.putWord(word);
                 }
 
-                setTimeout(() => {
-                    window.location.href = 'dhanki-webapp.html';
-                }, 1000);
+                showFeedback(`Added ${addedCount} word(s). Updated ${updatedCount} word(s). ${skippedCount} word(s) already existed. Redirecting...`, 'success');
+                setTimeout(() => {window.location.href = 'dhanki-webapp.html';}, 1000);
 
             } catch (error) {
                 console.error('Save failed:', error);
