@@ -291,6 +291,29 @@
             background: rgba(248, 113, 113, 0.2);
         }
 
+        .empty-banner {
+            display: none;
+            text-align: center;
+            padding: 2rem;
+            background: linear-gradient(135deg, rgba(74, 138, 222, 0.15) 0%, rgba(47, 37, 155, 0.05) 100%);
+            border: 1px solid rgba(81, 132, 214, 0.3);
+            border-radius: 12px;
+            margin-bottom: 1.5rem;
+        }
+        .empty-banner.visible {
+            display: block;
+        }
+
+        .empty-banner h2 {
+            color: var(--text-muted);
+            font-size: 1.75rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .empty-banner p {
+            color: var(--text-muted);
+        }
+
         .complete-banner {
             display: none;
             text-align: center;
@@ -397,13 +420,18 @@
 <body>
     <header>
         <h1>LotterLearner</h1>
-        <p class="subtitle">Spaced repetition vocabulary trainer</p>
+        <p class="subtitle">Hello Georgia, what would you like to learn today?</p>
     </header>
 
     <div class="main-card" id="mainCard">
         <div class="complete-banner" id="completeBanner">
             <h2>🎉 ¡Felicidades!</h2>
             <p>You've mastered all the words!</p>
+        </div>
+
+        <div class="empty-banner" id="emptyBanner">
+            <h2>⏳ Empty Vocab ⏳</h2>
+            <p>Add some words to your vocab to get started ...!</p>
         </div>
 
         <div class="spanish-word" id="spanishWord">Loading...</div>
@@ -592,8 +620,17 @@
                 this.words.forEach(w => w.age++);
             }
 
+            get isEmpty() {
+                return this.words.length === 0
+            }
+
             get isComplete() {
-                return this.words.every(w => w.isMastered);
+                if (this.isEmpty) {
+                    return False
+                } else {
+                    return this.words.every(w => w.isMastered);
+                }
+
             }
 
             get masteredCount() {
@@ -661,6 +698,7 @@
         const correctCountEl = document.getElementById('correctCount');
         const masteredCountEl = document.getElementById('masteredCount');
         const wordsGridEl = document.getElementById('wordsGrid');
+        const emptyBannerEl = document.getElementById('emptyBanner');
         const completeBannerEl = document.getElementById('completeBanner');
         const resetBtn = document.getElementById('resetBtn')
         // const createBtn = document.getElementById('createBtn')
@@ -734,6 +772,20 @@
         }
 
         function nextTurn() {
+            if (vocab.isEmpty) {
+                emptyBannerEl.classList.add('visible');
+                answerInput.disabled = true;
+                submitBtn.disabled = true;
+                englishWordEl.classList.remove("visible");
+                answerInput.classList.remove("visible");
+                submitBtn.classList.remove("visible");
+
+                englishWordEl.classList.add("hidden");
+                answerInput.classList.add("hidden");
+                submitBtn.classList.add("hidden");
+                return;
+            }
+
             if (vocab.isComplete) {
                 completeBannerEl.classList.add('visible');
                 englishWordEl.textContent = '🎉';
