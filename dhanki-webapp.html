@@ -384,7 +384,7 @@
     </header>
 
     <div class="empty-state" id="emptyState">
-        <button id="createBtn" class="btn-load">Create Vocabulary</button>
+        <a href="create-vocab.html" class="btn-load-vocab">Create Vocabulary</a>
     </div>
 
     <div class="main-card" id="mainCard">
@@ -652,7 +652,7 @@
         const mainCardEl = document.getElementById('mainCard');
         const wordListEl = document.getElementById('wordList');
         const resetBtn = document.getElementById('resetBtn')
-        const createBtn = document.getElementById('createBtn')
+        // const createBtn = document.getElementById('createBtn')
 
         // Event listeners
         submitBtn.addEventListener('click', checkAnswer);
@@ -660,7 +660,7 @@
             if (e.key === 'Enter') checkAnswer();
         });
 
-        createBtn.addEventListener("click", createVocab)
+        // createBtn.addEventListener("click", createVocab)
         resetBtn.addEventListener('click', resetVocab)
         clearBtn.addEventListener("click", clearVocab)
 
