@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dankhi — Spanish Vocabulary Trainer</title>
+    <title>LotterLearner — Spanish Vocabulary Trainer</title>
     <link href="https://fonts.googleapis.com/css2?family=Crimson+Pro:wght@400;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -396,13 +396,9 @@
 </head>
 <body>
     <header>
-        <h1>Dankhi</h1>
+        <h1>LotterLearner</h1>
         <p class="subtitle">Spaced repetition vocabulary trainer</p>
     </header>
-
-    <div class="empty-state" id="emptyState">
-        <a href="create-vocab.html" class="btn-load-vocab">Create Vocabulary</a>
-    </div>
 
     <div class="main-card" id="mainCard">
         <div class="complete-banner" id="completeBanner">
@@ -438,7 +434,6 @@
     <div class="word-list" id="wordList">
 
 
-        <button id="resetBtn" class="btn-reset">Reset Vocab</button>
         <a href="create-vocab.html?mode=add" class="btn-add">Add Vocab</a>
         <h2>Vocabulary Progress</h2>
 
@@ -452,6 +447,7 @@
         </div>
         <div class="words-grid" id="wordsGrid"></div>
         <br>
+        <button id="resetBtn" class="btn-reset">Reset Vocab</button>
         <button id="clearBtn" class="btn-clear">Clear Vocab</button>
 
     </div>
@@ -666,9 +662,6 @@
         const masteredCountEl = document.getElementById('masteredCount');
         const wordsGridEl = document.getElementById('wordsGrid');
         const completeBannerEl = document.getElementById('completeBanner');
-        const emptyStateEl = document.getElementById('emptyState');
-        const mainCardEl = document.getElementById('mainCard');
-        const wordListEl = document.getElementById('wordList');
         const resetBtn = document.getElementById('resetBtn')
         // const createBtn = document.getElementById('createBtn')
 
@@ -687,26 +680,14 @@
         function render() {
             // Check if vocab is empty
             console.log("rendering", vocab.words.length, "words")
-            if (vocab.words.length === 0) {
-                // Show empty state, hide main content
-                emptyStateEl.classList.add('visible');
-                emptyStateEl.classList.remove('hidden');
-                mainCardEl.classList.add('hidden');
-                mainCardEl.classList.remove('visible');
-                wordListEl.classList.add('hidden');
-                wordListEl.classList.remove('visible');
-            } else {
-                // Initialize the app now that vocab is loaded
-                emptyStateEl.classList.add('hidden');
-                emptyStateEl.classList.remove('visible');
-                mainCardEl.classList.add('visible');
-                mainCardEl.classList.remove('hidden');
-                wordListEl.classList.add('visible');
-                wordListEl.classList.remove('hidden');
-                updateStats();
-                renderWordList();
-                nextTurn();
-            }
+
+            // Initialize the app now that vocab is loaded
+            // mainCardEl.classList.add('visible');
+            // wordListEl.classList.add('visible');
+            updateStats();
+            renderWordList();
+            nextTurn();
+
         }
 
         function showFeedback(message, type) {
