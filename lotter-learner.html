@@ -899,6 +899,8 @@
         async function resetVocab() {
             vocab.reset()
             await vocab.store()
+            turnCount = 0
+            correctCount = 0
             render()
         }
 
