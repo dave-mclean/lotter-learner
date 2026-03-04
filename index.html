@@ -586,8 +586,8 @@
             }
 
             get isMastered() {
-                const lastThree = this.guesses.slice(-3);
-                return lastThree.length === 3 && lastThree.every(g => g === true);
+                const lastThree = this.guesses.slice(-5);
+                return lastThree.length === 5 && lastThree.every(g => g === true);
             }
 
             reset = function() {
@@ -797,6 +797,7 @@
                 hideEl(answerInput)
                 hideEl(submitBtn)
                 hideFeedback();
+                CongratulationsMP4.play()
                 return;
             }
 
@@ -812,6 +813,28 @@
             answerInput.value = '';
             answerInput.focus();
             isTypoRetry = false;
+        }
+
+        function good_audio() {
+            bad_streak = 0
+            streak++
+            if (streak === 3) {
+                ProudMP4.play();
+            } else if (streak === 5) {
+                ggMP4.play()
+            } else {
+                GoodMP4.play()
+            }
+        }
+
+        function bad_audio() {
+            streak = 0
+            bad_streak++
+            if (bad_streak === 3) {
+                PayAttentionMP4.play();
+            } else if (bad_streak === 5) {
+                OhDearMP4.play()
+            }
         }
 
         async function checkAnswer() {
@@ -834,6 +857,7 @@
             // }
 
             if (isCorrect) {
+                good_audio()
                 currentWord.guesses.push(true);
                 correctCount++;
 
@@ -846,6 +870,7 @@
                 englishWordEl.classList.add('pulse');
                 setTimeout(() => englishWordEl.classList.remove('pulse'), 300);
             } else {
+                bad_audio()
                 currentWord.guesses.push(false);
                 showFeedback(`❌ Correct answer: ${currentWord.translations.join(' / ')}`, 'incorrect');
                 englishWordEl.classList.add('shake');
@@ -861,7 +886,16 @@
             updateStats();
             renderWordList();
 
-            setTimeout(nextTurn, 1500);
+            if (streak === 5 || bad_streak === 5) {
+                setTimeout(nextTurn, 3300);
+            } else if (bad_streak === 5) {
+                setTimeout(nextTurn, 500);
+            } else if (streak === 3 || bad_streak === 3) {
+                setTimeout(nextTurn, 2300);
+            } else {
+                setTimeout(nextTurn, 1000);
+            }
+
         }
 
         // Create a vocab in the db
@@ -901,6 +935,8 @@
             await vocab.store()
             turnCount = 0
             correctCount = 0
+            streak = 0
+            bad_streak = 0
             render()
         }
 
@@ -931,6 +967,19 @@
         let turnCount = 0;
         let correctCount = 0;
         let isTypoRetry = false;
+        let streak = 0
+        let bad_streak = 0
+
+        // Audio
+        const ggMP4 = new Audio('audio/gg.mp4');
+        const GoodMP4 = new Audio('audio/good.mp4');
+        const NiceMP4 = new Audio('audio/nice.mp4');
+        const OhDearMP4 = new Audio('audio/oh-dear.mp4');
+        const PayAttentionMP4 = new Audio('audio/pay-attention.mp4');
+        const ProudMP4 = new Audio('audio/proud.mp4');
+        const WellDoneMP4 = new Audio('audio/well-done.mp4');
+        const CongratulationsMP4 = new Audio('audio/congratulations.mp4')
+
 
         // Initialize the app (async)
         async function init() {
