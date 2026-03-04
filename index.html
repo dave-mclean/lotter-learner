@@ -106,6 +106,16 @@
             box-shadow: 0 0 0 3px rgba(212, 165, 116, 0.15);
         }
 
+        input[type="text"].correction-mode {
+            border-color: var(--error);
+            box-shadow: 0 0 0 3px rgba(248, 113, 113, 0.25);
+        }
+
+        input[type="text"].correction-mode:focus {
+            border-color: var(--error);
+            box-shadow: 0 0 0 3px rgba(248, 113, 113, 0.35);
+        }
+
         button {
             font-family: 'Crimson Pro', Georgia, serif;
             font-size: 1.1rem;
@@ -441,7 +451,7 @@
         <div class="spanish-word" id="spanishWord">Loading...</div>
 
         <div class="input-group">
-            <input type="text" id="answerInput" placeholder="Type the English translation..." autocomplete="off">
+            <input type="text" id="answerInput" placeholder="Type the Spanish translation..." autocomplete="off">
             <button id="submitBtn">Check</button>
         </div>
 
@@ -813,6 +823,8 @@
             answerInput.value = '';
             answerInput.focus();
             isTypoRetry = false;
+            correctionMode = false;
+            answerInput.classList.remove('correction-mode');
         }
 
         function good_audio() {
@@ -848,14 +860,29 @@
 
             const isCorrect = currentWord.translations.includes(answer);
 
-            // Check for typo (only if not already a retry)
-            // if (!isCorrect && !isTypoRetry && isTypo(answer, currentWord.translations)) {
-            //     showFeedback('❓ That looks like a typo... try again?', 'typo');
-            //     isTypoRetry = true;
-            //     answerInput.select();
-            //     return;
-            // }
+            // If in correction mode, check if they typed it correctly (no stats affected)
+            if (correctionMode) {
+                if (isCorrect) {
+                    correctionMode = false;
+                    answerInput.classList.remove('correction-mode');
+                    showFeedback('✅ Good, now you know it!', 'correct');
+                    englishWordEl.classList.add('pulse');
+                    setTimeout(() => englishWordEl.classList.remove('pulse'), 300);
+                    setTimeout(nextTurn, 1000);
+                    answerInput.placeholder = "Type the Spanish translation..."
 
+                } else {
+                    // Still wrong, shake and let them try again
+                    answerInput.classList.add('shake');
+                    setTimeout(() => answerInput.classList.remove('shake'), 300);
+                    showFeedback(`❌ Type it correctly: ${currentWord.translations.join(' / ')}`, 'incorrect');
+                    answerInput.value = '';
+                    answerInput.focus();
+                }
+                return;
+            }
+
+            // Normal answer checking (not in correction mode)
             if (isCorrect) {
                 good_audio()
                 currentWord.guesses.push(true);
@@ -869,33 +896,47 @@
                 showFeedback(message, 'correct');
                 englishWordEl.classList.add('pulse');
                 setTimeout(() => englishWordEl.classList.remove('pulse'), 300);
+
+                vocab.incrementAge();
+                currentWord.age = 0;
+                turnCount++;
+
+                await vocab.store()
+
+                updateStats();
+                renderWordList();
+
+                if (streak === 5 || bad_streak === 5) {
+                    setTimeout(nextTurn, 3300);
+                } else if (streak === 3 || bad_streak === 3) {
+                    setTimeout(nextTurn, 2300);
+                } else {
+                    setTimeout(nextTurn, 1000);
+                }
             } else {
+                // Wrong answer - record it, then enter correction mode
                 bad_audio()
                 currentWord.guesses.push(false);
-                showFeedback(`❌ Correct answer: ${currentWord.translations.join(' / ')}`, 'incorrect');
+
+                vocab.incrementAge();
+                currentWord.age = 0;
+                turnCount++;
+
+                await vocab.store()
+
+                updateStats();
+                renderWordList();
+
+                // Enter correction mode - user must type the correct answer
+                correctionMode = true;
+                answerInput.classList.add('correction-mode');
+                showFeedback(`❌ Type it correctly: ${currentWord.translations.join(' / ')}`, 'incorrect');
                 englishWordEl.classList.add('shake');
                 setTimeout(() => englishWordEl.classList.remove('shake'), 300);
+                answerInput.value = '';
+                answerInput.focus();
+                answerInput.placeholder = `${currentWord.translations.join(' / ')}`
             }
-
-            vocab.incrementAge();
-            currentWord.age = 0;
-            turnCount++;
-
-            await vocab.store()
-
-            updateStats();
-            renderWordList();
-
-            if (streak === 5 || bad_streak === 5) {
-                setTimeout(nextTurn, 3300);
-            } else if (bad_streak === 5) {
-                setTimeout(nextTurn, 500);
-            } else if (streak === 3 || bad_streak === 3) {
-                setTimeout(nextTurn, 2300);
-            } else {
-                setTimeout(nextTurn, 1000);
-            }
-
         }
 
         // Create a vocab in the db
@@ -969,6 +1010,7 @@
         let isTypoRetry = false;
         let streak = 0
         let bad_streak = 0
+        let correctionMode = false;  // Track if user needs to type correct answer
 
         // Audio
         const ggMP4 = new Audio('audio/gg.mp4');
