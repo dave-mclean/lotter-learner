@@ -176,6 +176,111 @@
             background: rgba(248, 113, 113, 0.1);
             color: var(--error);
         }
+
+        .vocab-list {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 2rem;
+            width: 100%;
+            max-width: 700px;
+            margin-top: 1.5rem;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        }
+
+        .vocab-list h2 {
+            color: var(--accent-gold);
+            font-size: 1.3rem;
+            margin-bottom: 1rem;
+            font-weight: 600;
+        }
+
+        .vocab-item {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 0.75rem 1rem;
+            background: var(--bg-input);
+            border-radius: 8px;
+            margin-bottom: 0.5rem;
+            border: 1px solid var(--border);
+        }
+
+        .vocab-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .vocab-word {
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 500;
+            color: var(--text-primary);
+            min-width: 120px;
+        }
+
+        .vocab-translations {
+            flex: 1;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+
+        .btn-delete {
+            background: transparent;
+            border: 1px solid var(--error);
+            color: var(--error);
+            padding: 0.4rem 0.75rem;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: background 0.15s, transform 0.15s;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .btn-delete:hover {
+            background: rgba(248, 113, 113, 0.15);
+            transform: scale(1.05);
+        }
+
+        .empty-message {
+            color: var(--text-muted);
+            text-align: center;
+            padding: 2rem;
+            font-style: italic;
+        }
+
+        .word-count {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            margin-left: 0.5rem;
+        }
+
+        @media (max-width: 600px) {
+            body {
+                padding: 1rem;
+            }
+
+            .main-card, .vocab-list {
+                padding: 1.5rem;
+            }
+
+            .vocab-item {
+                flex-wrap: wrap;
+                gap: 0.5rem;
+            }
+
+            .vocab-word {
+                min-width: unset;
+                flex: 1 1 100%;
+            }
+
+            .vocab-translations {
+                flex: 1 1 70%;
+            }
+
+            .btn-delete {
+                flex-shrink: 0;
+            }
+        }
     </style>
 </head>
 <body>
@@ -202,11 +307,16 @@ the meeting, la reunión
         ></textarea>
 
         <div class="button-row">
-            <a href="index.html" class="btn btn-secondary">Cancel</a>
+            <a href="index.html" class="btn btn-secondary">Home</a>
             <button id="saveBtn" class="btn btn-primary">Save Vocabulary</button>
         </div>
 
         <div id="feedback" class="feedback"></div>
+    </div>
+
+    <div class="vocab-list" id="vocabList">
+        <h2>Current Vocabulary <span class="word-count" id="wordCount"></span></h2>
+        <div id="vocabItems"></div>
     </div>
 
     <script>
@@ -271,6 +381,26 @@ the meeting, la reunión
                 return new Promise((resolve, reject) => {
                     const request = store.get(english);
                     request.onsuccess = () => resolve(request.result);
+                    request.onerror = () => reject(request.error);
+                });
+            }
+
+            async getAllWords() {
+                const store = this.getStore("words", "readonly");
+
+                return new Promise((resolve, reject) => {
+                    const request = store.getAll();
+                    request.onsuccess = () => resolve(request.result || []);
+                    request.onerror = () => reject(request.error);
+                });
+            }
+
+            async deleteWord(english) {
+                const store = this.getStore("words", "readwrite");
+
+                return new Promise((resolve, reject) => {
+                    const request = store.delete(english);
+                    request.onsuccess = () => resolve();
                     request.onerror = () => reject(request.error);
                 });
             }
@@ -355,8 +485,9 @@ the meeting, la reunión
                     await db.putWord(word);
                 }
 
-                showFeedback(`Added ${addedCount} word(s). Updated ${updatedCount} word(s). ${skippedCount} word(s) already existed. Redirecting...`, 'success');
-                setTimeout(() => {window.location.href = 'index.html';}, 1000);
+                showFeedback(`Added ${addedCount} word(s). Updated ${updatedCount} word(s). ${skippedCount} word(s) already existed.`, 'success');
+                csvInput.value = '';
+                await renderVocabList();
 
             } catch (error) {
                 console.error('Save failed:', error);
@@ -365,6 +496,54 @@ the meeting, la reunión
         }
 
         saveBtn.addEventListener('click', saveVocabulary);
+
+        const vocabItemsEl = document.getElementById('vocabItems');
+        const wordCountEl = document.getElementById('wordCount');
+
+        async function renderVocabList() {
+            try {
+                await db.init();
+                const words = await db.getAllWords();
+
+                wordCountEl.textContent = `(${words.length} words)`;
+
+                if (words.length === 0) {
+                    vocabItemsEl.innerHTML = '<div class="empty-message">No vocabulary added yet</div>';
+                    return;
+                }
+
+                // Sort alphabetically by English word
+                words.sort((a, b) => a.english.localeCompare(b.english));
+
+                vocabItemsEl.innerHTML = words.map(word => `
+                    <div class="vocab-item" data-word="${encodeURIComponent(word.english)}">
+                        <span class="vocab-word">${word.english}</span>
+                        <span class="vocab-translations">${word.translations.join(', ')}</span>
+                        <button class="btn-delete" onclick="deleteWord('${encodeURIComponent(word.english)}')">Delete</button>
+                    </div>
+                `).join('');
+            } catch (error) {
+                console.error('Failed to load vocabulary:', error);
+                vocabItemsEl.innerHTML = '<div class="empty-message">Failed to load vocabulary</div>';
+            }
+        }
+
+        async function deleteWord(encodedEnglish) {
+            const english = decodeURIComponent(encodedEnglish);
+            if (!confirm(`Delete "${english}"?`)) return;
+
+            try {
+                await db.init();
+                await db.deleteWord(english);
+                await renderVocabList();
+            } catch (error) {
+                console.error('Failed to delete word:', error);
+                showFeedback('Failed to delete: ' + error.message, 'error');
+            }
+        }
+
+        // Initialize: load existing vocabulary
+        renderVocabList();
     </script>
 
     <script>
