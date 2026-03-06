@@ -436,6 +436,104 @@
         .hidden {
             display: none !important;
         }
+
+        /* Mobile responsive styles */
+        @media (max-width: 600px) {
+            body {
+                padding: 1rem;
+            }
+
+            h1 {
+                font-size: 1.8rem;
+            }
+
+            .subtitle {
+                font-size: 0.95rem;
+            }
+
+            .main-card {
+                padding: 1.5rem;
+            }
+
+            .spanish-word {
+                font-size: 1.5rem;
+                padding: 1rem;
+            }
+
+            .input-group {
+                flex-direction: column;
+            }
+
+            button {
+                width: 100%;
+            }
+
+            .word-list {
+                padding: 1rem;
+            }
+
+            .word-list h2 {
+                font-size: 1.1rem;
+            }
+
+            /* Hide the header row on mobile */
+            .header-row {
+                display: none;
+            }
+
+            /* Card-based layout for word rows */
+            .word-row {
+                grid-template-columns: 1fr;
+                grid-template-rows: auto auto;
+                gap: 0.5rem;
+                padding: 0.75rem;
+            }
+
+            .word-row::before {
+                content: none;
+            }
+
+            .word-english {
+                font-size: 0.95rem;
+                margin-bottom: 0.25rem;
+            }
+
+            .word-row > *:not(.word-english):not(.word-guesses) {
+                display: none;
+            }
+
+            .word-guesses {
+                justify-content: flex-start;
+            }
+
+            /* Add mobile-specific info display */
+            .word-row {
+                position: relative;
+            }
+
+            .word-row .word-priority {
+                display: block;
+                position: absolute;
+                right: 0.75rem;
+                top: 50%;
+                transform: translateY(-50%);
+                font-size: 0.7rem;
+                background: var(--bg-input);
+                padding: 0.2rem 0.4rem;
+                border-radius: 4px;
+            }
+
+            .guess-dot {
+                width: 12px;
+                height: 12px;
+                font-size: 8px;
+            }
+
+            .btn-add, .btn-reset, .btn-clear {
+                font-size: 0.75rem;
+                padding: 0.6rem 1rem;
+            }
+        }
     </style>
 </head>
 <body>
@@ -451,7 +549,7 @@
         </div>
 
         <div class="empty-banner" id="emptyBanner">
-            <h2>⏳ Empty Vocab ⏳</h2>
+            <h2>Empty Vocab</h2>
             <p>Add some words to your vocab to get started ...</p>
         </div>
 
