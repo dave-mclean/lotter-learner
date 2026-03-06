@@ -2,14 +2,15 @@
   "name": "LotterLearner — Spanish Vocabulary Trainer",
   "short_name": "LotterLearner",
   "description": "Learn Spanish vocabulary with spaced repetition",
-  "start_url": "/index.html",
+  "start_url": "./index.html",
+  "scope": "./",
   "display": "standalone",
   "background_color": "#0a0a0f",
   "theme_color": "#d4a574",
   "orientation": "portrait-primary",
   "icons": [
     {
-      "src": "icon.svg",
+      "src": "./icon.svg",
       "sizes": "any",
       "type": "image/svg+xml",
       "purpose": "any"

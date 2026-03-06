@@ -1,19 +1,21 @@
 const CACHE_NAME = 'lotterlearner-v1';
+
+// Convert relative paths to absolute URLs for GitHub Pages compatibility
 const ASSETS_TO_CACHE = [
-  '/',
-  '/index.html',
-  '/create-vocab.html',
-  '/manifest.json',
-  '/icon.svg',
-  '/audio/congratulations.mp4',
-  '/audio/gg.mp4',
-  '/audio/good.mp4',
-  '/audio/nice.mp4',
-  '/audio/oh-dear.mp4',
-  '/audio/pay-attention.mp4',
-  '/audio/proud.mp4',
-  '/audio/well-done.mp4'
-];
+  './',
+  './index.html',
+  './create-vocab.html',
+  './manifest.json',
+  './icon.svg',
+  './audio/congratulations.mp4',
+  './audio/gg.mp4',
+  './audio/good.mp4',
+  './audio/nice.mp4',
+  './audio/oh-dear.mp4',
+  './audio/pay-attention.mp4',
+  './audio/proud.mp4',
+  './audio/well-done.mp4'
+].map(path => new URL(path, self.location.href).href);
 
 // Install event - cache all static assets
 self.addEventListener('install', (event) => {
