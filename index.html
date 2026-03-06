@@ -434,7 +434,7 @@
 <body>
     <header>
         <h1>LotterLearner</h1>
-        <p class="subtitle">Hello Georgia, what would you like to learn today?</p>
+        <p class="subtitle" id="WelcomeText">Hello Georgia, what would you like to learn today?</p>
     </header>
 
     <div class="main-card" id="mainCard">
@@ -713,7 +713,17 @@
         const emptyBannerEl = document.getElementById('emptyBanner');
         const completeBannerEl = document.getElementById('completeBanner');
         const resetBtn = document.getElementById('resetBtn')
-        // const createBtn = document.getElementById('createBtn')
+        const welcomeTextEl = document.getElementById('WelcomeText')
+
+        // Birthday check for Georgia
+        const today = new Date();
+        if (today.getMonth() === 2 && today.getDate() === 13) {
+            welcomeTextEl.textContent = "Happy Birthday Georgia 🎉 What would you like to learn today?";
+        } else if (today.getMonth() === 11 && today.getDate() === 25) {
+            welcomeTextEl.textContent = "Merry Christmas Georgia 🎄 What would you like to learn today?";
+        } else if (today.getMonth() === 0 && today.getDate() === 1) {
+            welcomeTextEl.textContent = "Happy New Year Georgia! 🎆 What would you like to learn this year?";
+        }
 
         // Event listeners
         submitBtn.addEventListener('click', checkAnswer);
@@ -724,7 +734,6 @@
         // createBtn.addEventListener("click", createVocab)
         resetBtn.addEventListener('click', resetVocab)
         clearBtn.addEventListener("click", clearVocab)
-
 
 
         function render() {
