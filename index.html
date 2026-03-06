@@ -660,37 +660,38 @@
             }
         }
 
-        // Levenshtein distance for typo detection
-        function levenshtein(a, b) {
-            const matrix = [];
-            for (let i = 0; i <= b.length; i++) {
-                matrix[i] = [i];
-            }
-            for (let j = 0; j <= a.length; j++) {
-                matrix[0][j] = j;
-            }
-            for (let i = 1; i <= b.length; i++) {
-                for (let j = 1; j <= a.length; j++) {
-                    if (b.charAt(i - 1) === a.charAt(j - 1)) {
-                        matrix[i][j] = matrix[i - 1][j - 1];
-                    } else {
-                        matrix[i][j] = Math.min(
-                            matrix[i - 1][j - 1] + 1,
-                            matrix[i][j - 1] + 1,
-                            matrix[i - 1][j] + 1
-                        );
-                    }
-                }
-            }
-            return matrix[b.length][a.length];
+        function isApprovedInput(input, allowedOptions, threshold = 0.75) {
+        const normalize = s => s.toLowerCase().trim();
+
+        return allowedOptions.some(option =>
+            similarity(normalize(input), normalize(option)) >= threshold
+        );
+        }
+
+        function levenstein(a, b) {
+            if (a === b) return 1;
+
+            if (!a.length || !b.length) return 0;
+
+            const matrix = Array.from({ length: b.length + 1 }, (_, i) =>
+                Array.from({ length: a.length + 1 }, (_, j) => i === 0 ? j : j === 0 ? i : 0)
+            );
+
+            for (let i = 1; i <= b.length; i++)
+                for (let j = 1; j <= a.length; j++)
+                    matrix[i][j] = b[i-1] === a[j-1]
+                        ? matrix[i-1][j-1]
+                        : 1 + Math.min(matrix[i-1][j], matrix[i][j-1], matrix[i-1][j-1]);
+
+            const maxLen = Math.max(a.length, b.length);
+            return 1 - matrix[b.length][a.length] / maxLen;
         }
 
         function isTypo(answer, translations) {
-            return translations.some(t => {
-                const distance = levenshtein(answer.toLowerCase(), t.toLowerCase());
-                return distance > 0 && distance <= 2 && answer.length >= 3;
-            });
+            return translations.some(t => (levenstein(answer, t) >= 0.75))
         }
+
+
 
         // Get RGB color based on priority
         function getPriorityColor(priority, minP, maxP) {
@@ -870,6 +871,16 @@
             }
 
             const isCorrect = currentWord.translations.includes(answer);
+
+            if (!isCorrect && !isTypoRetry && isTypo(answer, currentWord.translations)) {
+                // Typo detected - give them one chance to check
+                isTypoRetry = true;
+                showFeedback('🤔 Check your spelling...', 'typo');
+                answerInput.classList.add('shake');
+                setTimeout(() => answerInput.classList.remove('shake'), 300);
+                answerInput.select();
+                return;
+            }
 
             // If in correction mode, check if they typed it correctly (no stats affected)
             if (correctionMode) {
