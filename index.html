@@ -689,7 +689,7 @@
             }
 
             get learnedness() {
-                return this.guesses.slice(-3).filter(g => g === true).length;
+                return this.guesses.slice(-5).filter(g => g === true).length;
             }
 
             get priority() {
@@ -700,8 +700,8 @@
             }
 
             get isMastered() {
-                const lastThree = this.guesses.slice(-5);
-                return lastThree.length === 5 && lastThree.every(g => g === true);
+                const lastFive = this.guesses.slice(-5);
+                return lastFive.length === 5 && lastFive.every(g => g === true);
             }
 
             reset = function() {
