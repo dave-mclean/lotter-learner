@@ -540,8 +540,6 @@ the meeting, la reunión
 
         async function deleteWord(encodedEnglish) {
             const english = decodeURIComponent(encodedEnglish);
-            if (!confirm(`Delete "${english}"?`)) return;
-
             try {
                 await db.init();
                 await db.deleteWord(english);
