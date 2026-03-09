@@ -7,6 +7,7 @@ const ASSETS_TO_CACHE = [
   './create-vocab.html',
   './manifest.json',
   './icon.svg',
+  './version.json',
   './audio/congratulations.mp4',
   './audio/gg.mp4',
   './audio/good.mp4',

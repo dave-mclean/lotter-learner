@@ -437,6 +437,16 @@
             display: none !important;
         }
 
+        .version {
+            position: fixed;
+            bottom: 0.5rem;
+            right: 0.75rem;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.65rem;
+            color: var(--text-muted);
+            opacity: 0.4;
+        }
+
         /* Mobile responsive styles */
         @media (max-width: 600px) {
             body {
@@ -1172,6 +1182,14 @@
                     });
             });
         }
+    </script>
+
+    <div class="version" id="version"></div>
+    <script>
+        fetch('./version.json')
+            .then(r => r.json())
+            .then(data => document.getElementById('version').textContent = 'v' + data.version)
+            .catch(() => {});
     </script>
 
 </body>
