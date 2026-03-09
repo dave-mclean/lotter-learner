@@ -526,10 +526,10 @@ the meeting, la reunión
                 words.sort((a, b) => a.english.localeCompare(b.english));
 
                 vocabItemsEl.innerHTML = words.map(word => `
-                    <div class="vocab-item" data-word="${encodeURIComponent(word.english)}">
+                    <div class="vocab-item" data-word="${word.english}">
                         <span class="vocab-word">${word.english}</span>
                         <span class="vocab-translations">${word.translations.join(', ')}</span>
-                        <button class="btn-delete" onclick="deleteWord('${encodeURIComponent(word.english)}')">Delete</button>
+                        <button class="btn-delete" onclick="deleteWord('${word.english}')">Delete</button>
                     </div>
                 `).join('');
             } catch (error) {
@@ -538,8 +538,7 @@ the meeting, la reunión
             }
         }
 
-        async function deleteWord(encodedEnglish) {
-            const english = decodeURIComponent(encodedEnglish);
+        async function deleteWord(english) {
             try {
                 await db.init();
                 await db.deleteWord(english);
