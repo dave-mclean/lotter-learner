@@ -576,8 +576,11 @@
         <br>
         <div class="version" id="version"></div>
         <br>
-        <img src="images/cake.jpg" class="cake-icon hidden" id="cakeIcon" title="🎉" alt="Birthday cake">
-        <p class="wonder" id="Wonder">hmmm... I wonder what this does?</p>
+        <div id="birthday" class="hidden">
+            <img src="images/cake.jpg" class="cake-icon" id="cakeIcon" title="🎉" alt="Birthday cake">
+            <p class="wonder" id="wonder">hmmm... I wonder what this does?</p>
+        </div>
+
     </header>
 
     <div class="main-card" id="mainCard">
@@ -858,13 +861,14 @@
         const completeBannerEl = document.getElementById('completeBanner');
         const resetBtn = document.getElementById('resetBtn')
         const welcomeTextEl = document.getElementById('WelcomeText')
-        const cakeImageEl = document.getElementById("cakeIcon")
+        const birthdayEl = document.getElementById("birthday")
+
 
         // Birthday check for Georgia
         const today = new Date();
         if (today.getMonth() === 2 && today.getDate() === 13) {
             welcomeTextEl.textContent = "Happy Birthday Georgia 🎉 What would you like to learn today?";
-            showEl(cakeImageEl)
+            showEl(birthdayEl)
         } else if (today.getMonth() === 2 && today.getDate() === 14) {
             welcomeTextEl.textContent = "Back to normal ... 😕 never-mind eh? Maybe some other days have surprises. What would you like to learn today?";
         }
