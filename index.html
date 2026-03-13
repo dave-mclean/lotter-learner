@@ -447,6 +447,23 @@
             opacity: 0.4;
         }
 
+        .cake-icon {
+            width: 60px;
+            height: auto;
+            cursor: pointer;
+            margin-top: 0.5rem;
+            transition: transform 0.2s;
+            border-radius: 8px;
+        }
+
+        .cake-icon:hover {
+            transform: scale(1.1);
+        }
+
+        .cake-icon:active {
+            transform: scale(0.95);
+        }
+
         /* Mobile responsive styles */
         @media (max-width: 600px) {
             body {
@@ -551,6 +568,9 @@
         <p class="subtitle" id="WelcomeText">Hello Georgia, what would you like to learn today?</p>
         <br>
         <div class="version" id="version"></div>
+        <br>
+        <img src="images/cake.jpg" class="cake-icon hidden" id="cakeIcon" title="🎉" alt="Birthday cake">
+        <p class="subtitle" id="WelcomeText">hmmm... I wonder what this does?</p>
     </header>
 
     <div class="main-card" id="mainCard">
@@ -831,15 +851,22 @@
         const completeBannerEl = document.getElementById('completeBanner');
         const resetBtn = document.getElementById('resetBtn')
         const welcomeTextEl = document.getElementById('WelcomeText')
+        const cakeImageEl = document.getElementById("cakeIcon")
 
         // Birthday check for Georgia
         const today = new Date();
         if (today.getMonth() === 2 && today.getDate() === 13) {
             welcomeTextEl.textContent = "Happy Birthday Georgia 🎉 What would you like to learn today?";
-        } else if (today.getMonth() === 11 && today.getDate() === 25) {
+            showEl(cakeImageEl)
+        } else if (today.getMonth() === 2 && today.getDate() === 14) {
+            welcomeTextEl.textContent = "Back to normal ... 😕 never-mind eh? Maybe some other days have surprises. What would you like to learn today?";
+        }
+        else if (today.getMonth() === 11 && today.getDate() === 25) {
             welcomeTextEl.textContent = "Merry Christmas Georgia 🎄 What would you like to learn today?";
         } else if (today.getMonth() === 0 && today.getDate() === 1) {
             welcomeTextEl.textContent = "Happy New Year Georgia! 🎆 What would you like to learn this year?";
+        } else if (today.getMonth() === 1 && today.getDate() === 14) {
+            welcomeTextEl.textContent = "I love you Georgia ❤️. If you ask nice maybe I'll teach you something ... 😈";
         }
 
         // Event listeners
@@ -1158,7 +1185,14 @@
         const PayAttentionMP4 = new Audio('audio/pay-attention.mp4');
         const ProudMP4 = new Audio('audio/proud.mp4');
         const WellDoneMP4 = new Audio('audio/well-done.mp4');
-        const CongratulationsMP4 = new Audio('audio/congratulations.mp4')
+        const CongratulationsMP4 = new Audio('audio/congratulations.mp4');
+        const HappyBirthdayMP4 = new Audio('audio/happy-birthday.mp4');
+
+        // Cake icon click handler
+        document.getElementById('cakeIcon').addEventListener('click', () => {
+            HappyBirthdayMP4.currentTime = 0;
+            HappyBirthdayMP4.play();
+        });
 
 
         // Initialize the app (async)
